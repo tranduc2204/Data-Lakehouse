@@ -29,6 +29,16 @@ def bronze_check_validator (file_path):
         return False
     return True
 
+def parse_file_name(file_name):
+    parts = file_name.replace(".csv", "").split("_")
+    
+    source = parts[0]
+    table = parts[1]
+    date = parts[2]  # 20260430
+    time = parts[3]  # 080000
+
+    return source, table, date, time
+
 
 def move_to_processed(file_name):
     src = os.path.join(INCOMING_PATH, file_name)
@@ -46,11 +56,17 @@ def move_to_processed(file_name):
 def load_to_bronze(file_path):
     bronze_check_validator(file_path)
     file_name = os.path.basename(file_path)
-    table_name = os.path.splitext(file_name)[0].split(".")[0]  # cust_info
+    source, table, date, time = parse_file_name(file_name)
+    table_name = "_".join([source, table])
+    # table_name = os.path.splitext(file_name)[0].split("_")[:2]  # cust_info  
+
+
+
+ 
 
     print ("\n\n\n")
     print (table_name, "  ", file_name)
-    print (current_date())
+
     print ("\n\n\n") 
     df = spark.read.option("header", True).csv(file_path)
 
@@ -60,17 +76,22 @@ def load_to_bronze(file_path):
     df.write \
         .mode("append") \
         .partitionBy("load_date") \
-        .parquet(f"s3a://bronze/{table_name}/") #parquet
-    
+        .parquet(f"s3a://bronze/{source}/{table}/dt={date}/")
+        # .parquet(f"s3a://bronze/{table_name}/") #parquet
+        
     # move data từ xử lý sang mục đã xử lý
     move_to_processed(file_name)
-    print(f"✅ Loaded to bronze/{table_name}")
+    print(f"✅ Loaded to bronze/{source}/{table}/dt={date}/")
 
 
 
 if __name__ == "__main__":
    
     load_to_bronze("./data/landing/incoming/crm_cust_20260430_080000.csv")
+
+
+
+
     load_to_bronze("./data/landing/incoming/crm_prd_20260430_080000.csv")
     load_to_bronze("./data/landing/incoming/crm_sales_20260430_080000.csv")
     load_to_bronze("./data/landing/incoming/erp_CAT_20260430_080000.csv")
