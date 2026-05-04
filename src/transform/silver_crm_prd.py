@@ -76,9 +76,10 @@ def silver_crm_prd (process_date):
                             .when(trim(col('prd_line')) == 'S', 'Other Sales')\
                             .when(trim(col('prd_line')) == 'T', 'Touring')\
                             .otherwise ('N/a'))\
-                    .withColumn('prd_key', trim(col('prd_key')))\
-                    .withColumn('prd_nm', trim(col('prd_nm')))
-    
+                    .withColumn('prd_nm', trim(col('prd_nm')))\
+                    .withColumn('prd_key', trim(regexp_replace(substring(col('prd_key'), 1,5),'-','_')))
+    df_prd.show()
+
     return df_prd
 
 def run(process_date):

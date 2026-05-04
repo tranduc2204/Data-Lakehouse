@@ -61,7 +61,9 @@ def silver_erp_cat (process_date):
 
     # df_cat.show()
     # print ("tổng số lượng dòng trong df_cat: ", df_cat.count())
-    df_cat = df_cat.withColumn('ID', col('ID').isNotNull())\
+    df_cat = df_cat.filter(col('ID').isNotNull())
+
+    df_cat = df_cat\
                 .withColumn('CAT', upper(trim(col('CAT'))))\
                 .withColumn('MAINTENANCE', upper(trim(col('MAINTENANCE'))))\
                 .withColumn('ID', upper(trim(col('ID'))))
